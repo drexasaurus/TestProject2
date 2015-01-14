@@ -1,19 +1,79 @@
 package drexasaurus.com.testproject2;
 
+import android.graphics.drawable.Drawable;
+//import android.provider.MediaStore;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
-
+import android.view.View;
+import android.widget.Button;
+import android.media.AudioManager;
+import android.widget.ImageView;
 
 public class MainActivity extends ActionBarActivity {
+    private AudioManager mAudioManager;
+    private boolean mPhoneIsSilent;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        mAudioManager = (AudioManager)getSystemService(AUDIO_SERVICE);
+
+        checkIfPhoneIsSilent();
+        setButtonClickListener();
     }
 
+    private void setButtonClickListener() {
+        Button toggleButton = (Button)findViewById(R.id.toggleButton);
+        toggleButton.setOnClickListener(
+                new View.OnClickListener() {
+                    public void onClick(View v) {
+                        if(mPhoneIsSilent) {
+                            mAudioManager.setRingerMode(AudioManager.RINGER_MODE_NORMAL);
+                            mPhoneIsSilent = false;
+                        }
+                        else {
+                            mAudioManager.setRingerMode(AudioManager.RINGER_MODE_SILENT);
+                            mPhoneIsSilent = true;
+                        }
+                        toggleUI();
+                    }
+                }
+            );
+    }
+
+    private void checkIfPhoneIsSilent() {
+        int ringerMode = mAudioManager.getRingerMode();
+
+        if(ringerMode == AudioManager.RINGER_MODE_SILENT) {
+            mPhoneIsSilent = true;
+        }
+        else {
+            mPhoneIsSilent = false;
+        }
+    }
+
+    private void toggleUI() {
+        ImageView imageView = (ImageView)findViewById(R.id.phone_icon);
+        Drawable newPhoneImage;
+        if(mPhoneIsSilent) {
+            newPhoneImage = getResources().getDrawable(R.drawable.phone_silent);
+        }
+        else {
+            newPhoneImage = getResources().getDrawable(R.drawable.phone_on);
+        }
+        imageView.setImageDrawable(newPhoneImage);
+    }
+
+    @Override
+    protected void onResume(){
+        super.onResume();
+        checkIfPhoneIsSilent();
+        toggleUI();
+    }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
